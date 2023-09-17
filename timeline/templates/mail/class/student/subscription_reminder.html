@@ -1,0 +1,14 @@
+{% extends "mail_templated/base.tpl" %}
+{% load humanize %}
+
+{% block subject %}
+{{ c.customer.first_name | capfirst }}, your {{ c.timeline.lesson.type_verbose_name }} is about to start!
+{% endblock %}
+
+{% block body %}
+Dear {{ c.customer.first_name | capfirst }},
+
+You have an active subscription, and haven't taken a class in over a week.
+
+{% include 'mailer/_signature.html' %}
+{% endblock %}
