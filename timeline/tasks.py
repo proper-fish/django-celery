@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from elk.celery import app as celery
 from market.models import Class
-from timeline.signals import class_starting_student, class_starting_teacher
+from timeline.signals import class_starting_student, class_starting_teacher, subscription_reminder_student
 
 
 @celery.task
@@ -20,3 +20,10 @@ def notify_15min_to_class():
         i.pre_start_notifications_sent_to_student = True
         i.save()
         class_starting_student.send(sender=notify_15min_to_class, instance=i)
+
+
+@celery.task
+def remind_student_of_subscription():
+    for i in Class.objects.classes_more_than_1_week_ago():
+        subscription_reminder_student.send(sender=remind_student_of_subscription, instance=i)
+

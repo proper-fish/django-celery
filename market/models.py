@@ -316,6 +316,30 @@ class ClassesManager(ProductContainerManager):
             yield current
             current += timedelta(days=1)
 
+    def classes_more_than_1_week_ago(self):
+        """
+        Return a queryset of classes, that are more than 1 week in the past,
+        with distinct users who didn't have classes in the last 7 days
+        """
+
+        one_week_ago = timezone.now() - timedelta(days=7)
+
+        # get all classes finished over 1 week ago with distinct users with active subscription
+        classes_over_1_week_ago = self.get_queryset(). \
+            filter(subscription__is_fully_used=False). \
+            filter(timeline__is_finished=True, timeline__end__lte=one_week_ago). \
+            distinct('customer')
+
+        # get all classes finished less than 1 week ago with distinct users with active subscription
+        classes_under_1_week_ago = self.get_queryset(). \
+            filter(subscription__is_fully_used=False,
+                   timeline__is_finished=True,
+                   timeline__end__gt=one_week_ago). \
+            distinct('customer')
+
+        # return classes that are older than 1 week and don't include those less than 1 week ago
+        return classes_over_1_week_ago.exclude(customer__pk__in=classes_under_1_week_ago.values('customer__pk'))
+
     def used(self):
         return self.get_queryset().filter(is_fully_used=True)
 
